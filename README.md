@@ -13,13 +13,15 @@ You must have CUDA installed
 export CUDA_VISIBLE_DEVICES=<GPU_INDEX>
 ```
 
-Once you have Rust installed, you can build the Ore CLI by running the following command:
+
 
 ```sh
 nvcc sha3.cu -o sha3
 ```
 
 Take the path and replace the PATH_TO_EXE with the path to the .exe that was just created in the mine.rs.
+
+Once you have Rust installed, you can build the Ore CLI by running the following command:
 
 ```sh
 cargo build --release

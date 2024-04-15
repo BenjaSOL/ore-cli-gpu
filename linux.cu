@@ -239,10 +239,7 @@ void find_message()
             }
         }
         cudaMemcpy(preimage, d_preimage, 64, cudaMemcpyDeviceToHost);
-        for (int i = 0; i < 40; i++)
-        {
-            printf("%c", preimage[i]);
-        }
+        fwrite(preimage, 1, 40, stdout);
     }
 }
 

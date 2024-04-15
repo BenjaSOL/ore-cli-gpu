@@ -1,0 +1,148 @@
+name: Build
+
+on:
+  push:
+    branches: ["master"]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  BINARY_NAME: ore
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - id: version
+        run: echo version="$(cargo metadata --no-deps --quiet --color never | jq -r '.packages[].version')-$(git describe --always --dirty=_modified)" >> "$GITHUB_OUTPUT"
+  build:
+    name: Build
+    needs: version
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+          # it requires unofficial prebuilt toolchain, disable it for security, consider it later
+          # - os: ubuntu-latest
+          #   target: aarch64-unknown-linux-musl
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          # https://github.com/briansmith/ring/issues/1167
+          # it's an issue of the upstream's upstream
+          # - os: windows-latest
+          #   target: aarch64-pc-windows-msvc
+          - os: ubuntu-latest
+            target: x86_64-pc-windows-gnu
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Rust
+        run: rustup target add ${{ matrix.target }}
+      # https://github.com/mozilla/grcov/blob/cc77ce34164fc3ea80ac579d1c15f36c9734133c/.github/workflows/release.yml#L34
+      - name: Install additional toolchains
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          set -x
+          case "${{ matrix.target }}" in
+            x86_64-unknown-linux-gnu)
+              ;;
+            x86_64-unknown-linux-musl)
+              sudo apt-get update
+              sudo apt-get install -y musl-tools
+              ;;
+            aarch64-unknown-linux-gnu)
+              sudo apt-get update
+              sudo apt-get install -y gcc-aarch64-linux-gnu
+
+              mkdir -p .cargo
+              echo '[target.aarch64-unknown-linux-gnu]' >> .cargo/config
+              echo 'linker = "aarch64-linux-gnu-gcc"' >> .cargo/config
+              ;;
+            x86_64-pc-windows-gnu)
+              sudo apt-get update
+              sudo apt-get install -y gcc-mingw-w64-x86-64-win32
+              ;;
+          esac
+      - name: Configure cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: release-${{ runner.os }}-cargo-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Lint
+        run: cargo fmt --check
+      - name: Build
+        # run: cargo build --release --locked --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }}
+      - name: Strip binary
+        if: ${{ matrix.os != 'windows-latest' }}
+        run: |
+          set -x
+          strip="strip"
+          file_extension=""
+          case "${{ matrix.target }}" in
+            x86_64-unknown-linux-gnu)
+              ;;
+            x86_64-unknown-linux-musl)
+              ;;
+            aarch64-unknown-linux-gnu)
+              strip=aarch64-linux-gnu-strip
+              ;;
+            aarch64-unknown-linux-musl)
+              strip=aarch64-linux-musl-strip
+              ;;
+            x86_64-pc-windows-gnu)
+              strip=x86_64-w64-mingw32-strip
+              file_extension=".exe"
+              ;;
+          esac
+
+          ${strip} target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}${file_extension}
+      - name: Package (unix)
+        if: ${{ matrix.os != 'windows-latest' }}
+        run: |
+          set -x
+          file_extension=""
+          case "${{ matrix.target }}" in
+            x86_64-pc-windows-gnu)
+              file_extension=".exe"
+              ;;
+          esac
+          rm -rf target/dist
+          mkdir target/dist
+          cd target/${{ matrix.target }}/release
+          cp ${{ env.BINARY_NAME }}${file_extension} ../../dist/${{ env.BINARY_NAME }}-${{ needs.version.outputs.version }}-${{ matrix.target }}${file_extension}
+      - name: Package (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          if (Test-Path target/dist) { rm -Recurse -Force target/dist }
+          mkdir target/dist
+          cd target/${{ matrix.target }}/release
+          cp "${{ env.BINARY_NAME }}.exe" "../../dist/${{ env.BINARY_NAME }}-${{ needs.version.outputs.version }}-${{ matrix.target }}.exe"
+      - name: Upload archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BINARY_NAME }}-${{ needs.version.outputs.version }}-${{ matrix.target }}
+          path: target/dist/*

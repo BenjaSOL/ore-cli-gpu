@@ -1,0 +1,5 @@
+/target
+output.log
+ore.bat
+test.exe
+cargo.lock

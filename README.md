@@ -1,6 +1,7 @@
 # Ore CLI with Nvidia GPU Support
 
-A command line interface for the Ore program to utilize Nvidia GPU's.
+A command line interface for the Ore program to utilize Nvidia GPU's. This is a boiler plate 
+
 
 Built by [@BenjaSOL](https://x.com/benjasol_) & [@KaedonsCrypto](https://x.com/KaedonsCrypto)
 
@@ -40,6 +41,8 @@ cargo build --release
 ```
 
 You will now run your hashing on the GPU instead of the CPU!
+
+Donations in ORE or SOL: EVK3M6Cth3uPZcATCtnZ16mqArSNXt5oC6kcmakwXudb
 
 ## Credits
 

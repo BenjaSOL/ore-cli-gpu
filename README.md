@@ -1,6 +1,6 @@
 # Ore CLI with Nvidia GPU Support
 
-A command line interface for the Ore program to utilize Nvidia GPU's.
+A command line interface for the Ore program to utilize Nvidia GPU's on Windows.
 
 Built by [@BenjaSOL](https://x.com/benjasol_) & [@KaedonsCrypto](https://x.com/KaedonsCrypto)
 

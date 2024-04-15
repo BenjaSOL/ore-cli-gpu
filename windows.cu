@@ -10,8 +10,8 @@ int gcd(int a, int b);
 // updated message the gpu_init() function
 int clock_speed;
 int number_multi_processors;
-int number_blocks = 1;
-int number_threads = 256;
+int number_blocks;
+int number_threads;
 int max_threads_per_mp;
 
 int num_messages;

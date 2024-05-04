@@ -158,13 +158,6 @@ impl Miner {
         difficulty: &solana_sdk::keccak::Hash,
         hash_and_pubkey: &[(solana_sdk::keccak::Hash, Pubkey)]
     ) -> (KeccakHash, u64) {
-        let found_solution = Arc::new(AtomicBool::new(false));
-        let solution = Arc::new(Mutex::<(KeccakHash, u64)>::new((
-            KeccakHash::new_from_array([0; 32]),
-            0,
-        )));
-        let signer = self.signer();
-        let pubkey = signer.pubkey();
 
     let mut child = tokio::process::Command::new("PATH_TO_EXE")
     .stdin(std::process::Stdio::piped())

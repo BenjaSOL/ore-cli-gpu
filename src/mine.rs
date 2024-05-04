@@ -26,7 +26,7 @@ use tokio::io::{AsyncWriteExt, BufReader, AsyncBufReadExt};
 const RESET_ODDS: u64 = 20;
 
 impl Miner {
-    pub async fn mine(&self, threads: u64) {
+    pub async fn mine(&self) {
         // Register, if needed.
         let signer = self.signer();
         self.register().await;
@@ -53,7 +53,7 @@ impl Miner {
             println!("Calling find_next_hash_par");
             let hash_and_pubkey = [(solana_sdk::keccak::Hash::new_from_array(proof.hash.0),signer.pubkey())];
             let (next_hash, nonce) =
-                self.find_next_hash_par(&treasury.difficulty.into(),&hash_and_pubkey, 0).await;
+                self.find_next_hash_par(&treasury.difficulty.into(),&hash_and_pubkey).await;
                 println!("Called find_next_hash_par");
                 println!("{} {}",next_hash, nonce);
             // Submit mine tx.
@@ -156,8 +156,7 @@ impl Miner {
     async fn  find_next_hash_par(
         &self,
         difficulty: &solana_sdk::keccak::Hash,
-        hash_and_pubkey: &[(solana_sdk::keccak::Hash, Pubkey)],
-        threads: usize
+        hash_and_pubkey: &[(solana_sdk::keccak::Hash, Pubkey)]
     ) -> (KeccakHash, u64) {
         let found_solution = Arc::new(AtomicBool::new(false));
         let solution = Arc::new(Mutex::<(KeccakHash, u64)>::new((

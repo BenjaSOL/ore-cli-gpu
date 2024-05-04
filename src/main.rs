@@ -128,16 +128,7 @@ struct RewardsArgs {
 }
 
 #[derive(Parser, Debug)]
-struct MineArgs {
-    #[arg(
-        long,
-        short,
-        value_name = "THREAD_COUNT",
-        help = "The number of threads to dedicate to mining",
-        default_value = "1"
-    )]
-    threads: u64,
-}
+struct MineArgs {}
 
 #[derive(Parser, Debug)]
 struct TreasuryArgs {}
@@ -214,8 +205,8 @@ async fn main() {
         Commands::Treasury(_) => {
             miner.treasury().await;
         }
-        Commands::Mine(args) => {
-            miner.mine(args.threads).await;
+        Commands::Mine(_) => {
+            miner.mine().await;
         }
         Commands::Claim(args) => {
             miner.claim(args.beneficiary, args.amount).await;

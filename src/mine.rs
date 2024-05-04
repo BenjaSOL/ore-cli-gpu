@@ -1,4 +1,5 @@
 use std::{
+    env,
     io::{stdout, Write,BufRead},
     sync::{atomic::AtomicBool, Arc, Mutex},
     mem
@@ -167,7 +168,7 @@ impl Miner {
         let signer = self.signer();
         let pubkey = signer.pubkey();
 
-    let mut child = tokio::process::Command::new("PATH_TO_EXE")
+    let mut child = tokio::process::Command::new(env::var("PATH_TO_EXE").unwrap())
     .stdin(std::process::Stdio::piped())
     .stdout(std::process::Stdio::piped())
     .stderr(std::process::Stdio::piped())

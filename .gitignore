@@ -2,4 +2,5 @@
 output.log
 ore.bat
 test.exe
-cargo.lock
+[cC]argo.lock
+linux

@@ -27,7 +27,11 @@ Linux users
 nvcc linux.cu -o linux
 ```
 
-Take the path to the executsble that was just created and replace the PATH_TO_EXE with the path to the .exe in the mine.rs.
+Take the path to the executable that was just created and pass it as an environment variable.
+
+```sh
+export PATH_TO_EXE=./linux
+```
 
 Once you have Rust installed, you can build the Ore CLI by running the following command:
 

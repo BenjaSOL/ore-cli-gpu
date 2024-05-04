@@ -59,7 +59,7 @@ impl Miner {
             // Submit mine tx.
             // Use busses randomly so on each epoch, transactions don't pile on the same busses
             println!("\n\nSubmitting hash for validation...");
-            'submit: loop {
+            '_submit: loop {
                 // Double check we're submitting for the right challenge
                 let proof_ = get_proof(&self.rpc_client, signer.pubkey()).await;
                 if !self.validate_hash(
